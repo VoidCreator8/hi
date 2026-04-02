@@ -112,13 +112,35 @@
             <p class="product-card-desc">${escapeHtml(p.description || '')}</p>
             <div class="product-card-footer">
               <span class="product-card-price">$${Number(p.price).toFixed(2)}</span>
-              <button class="btn btn-primary btn-sm" onclick='cart.addItem(${JSON.stringify({id:p.id, name:p.name, price:p.price, image:p.image})})'>
+              <button class="btn btn-primary btn-sm add-to-cart-btn"
+                      data-id="${p.id}"
+                      data-name="${escapeAttr(p.name)}"
+                      data-price="${p.price}"
+                      data-image="${escapeAttr(p.image || '')}">
                 Add to Cart
               </button>
             </div>
           </div>
         </div>
       `;
+    }
+
+    // Event delegation for add-to-cart buttons
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.add-to-cart-btn');
+      if (btn) {
+        cart.addItem({
+          id: Number(btn.dataset.id),
+          name: btn.dataset.name,
+          price: Number(btn.dataset.price),
+          image: btn.dataset.image,
+        });
+      }
+    });
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function escapeHtml(str) {
