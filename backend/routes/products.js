@@ -7,6 +7,10 @@ const { authenticateAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+function parseFeatured(val) {
+  return val === '1' || val === 1 || val === true ? 1 : 0;
+}
+
 // Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -103,7 +107,7 @@ router.post('/', authenticateAdmin, upload.single('image'), (req, res) => {
 
     const result = db.prepare(
       'INSERT INTO products (name, price, description, image, category_id, featured) VALUES (?, ?, ?, ?, ?, ?)'
-    ).run(name, parseFloat(price), description || '', image, category_id || null, featured ? 1 : 0);
+    ).run(name, parseFloat(price), description || '', image, category_id || null, parseFeatured(featured));
 
     const product = db.prepare(`
       SELECT p.*, c.name as category_name
@@ -143,7 +147,7 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
       description !== undefined ? description : existing.description,
       image,
       category_id !== undefined ? (category_id || null) : existing.category_id,
-      featured !== undefined ? (featured ? 1 : 0) : existing.featured,
+      featured !== undefined ? parseFeatured(featured) : existing.featured,
       req.params.id
     );
 
