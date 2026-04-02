@@ -8,8 +8,18 @@ const { authenticateAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+const uploadsDir = path.resolve(__dirname, '..', 'uploads');
+
 function parseFeatured(val) {
   return val === '1' || val === 1 || val === true ? 1 : 0;
+}
+
+// Safely delete an uploaded file, only if it resolves inside the uploads directory
+function safeUnlinkUpload(imagePath) {
+  if (!imagePath || !imagePath.startsWith('/uploads/')) return;
+  const resolved = path.resolve(__dirname, '..', imagePath);
+  if (!resolved.startsWith(uploadsDir + path.sep)) return;
+  fs.unlink(resolved, () => {});
 }
 
 // Configure multer for image uploads
@@ -141,11 +151,6 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
     } else if (image_url !== undefined) {
       image = image_url;
     }
-    // Clean up old uploaded file if image changed
-    if (image !== oldImage && oldImage && oldImage.startsWith('/uploads/')) {
-      const oldPath = path.join(__dirname, '..', oldImage);
-      fs.unlink(oldPath, () => {});
-    }
 
     db.prepare(
       'UPDATE products SET name = ?, price = ?, description = ?, image = ?, category_id = ?, featured = ? WHERE id = ?'
@@ -158,6 +163,11 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
       featured !== undefined ? parseFeatured(featured) : existing.featured,
       req.params.id
     );
+
+    // Clean up old uploaded file after successful DB update
+    if (image !== oldImage) {
+      safeUnlinkUpload(oldImage);
+    }
 
     const product = db.prepare(`
       SELECT p.*, c.name as category_name
@@ -182,10 +192,7 @@ router.delete('/:id', authenticateAdmin, (req, res) => {
 
     db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
     // Clean up uploaded image file
-    if (product.image && product.image.startsWith('/uploads/')) {
-      const imgPath = path.join(__dirname, '..', product.image);
-      fs.unlink(imgPath, () => {});
-    }
+    safeUnlinkUpload(product.image);
     res.json({ message: 'Product deleted successfully.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete product.' });
