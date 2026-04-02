@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - ShopHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="admin-sidebar-brand">ShopHub Admin</div>
+      <ul class="admin-sidebar-nav">
+        <li>
+          <a href="#" class="active" data-section="dashboard" onclick="switchSection('dashboard', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="#" data-section="products" onclick="switchSection('products', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            Products
+          </a>
+        </li>
+        <li>
+          <a href="#" data-section="categories" onclick="switchSection('categories', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            Categories
+          </a>
+        </li>
+        <li>
+          <a href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            View Store
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-content">
+      <button class="mobile-toggle" onclick="document.getElementById('admin-sidebar').classList.toggle('open')" style="margin-bottom:1rem;">&#9776; Menu</button>
+
+      <!-- Dashboard Section -->
+      <div id="section-dashboard" class="admin-section">
+        <div class="admin-header">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="admin-stats" id="admin-stats"></div>
+      </div>
+
+      <!-- Products Section -->
+      <div id="section-products" class="admin-section" style="display:none;">
+        <div class="admin-header">
+          <h1>Products</h1>
+          <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+        </div>
+        <div class="admin-card">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Featured</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body">
+              <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--gray);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Categories Section -->
+      <div id="section-categories" class="admin-section" style="display:none;">
+        <div class="admin-header">
+          <h1>Categories</h1>
+          <button class="btn btn-primary" onclick="openCategoryModal()">+ Add Category</button>
+        </div>
+        <div class="admin-card">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Products</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categories-table-body">
+              <tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--gray);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <h2 id="product-modal-title">Add Product</h2>
+      <form id="product-form" onsubmit="handleProductSubmit(event)">
+        <input type="hidden" id="product-id">
+        <div class="form-group">
+          <label for="product-name">Name *</label>
+          <input type="text" id="product-name" required placeholder="Product name">
+        </div>
+        <div class="form-group">
+          <label for="product-price">Price *</label>
+          <input type="number" id="product-price" required step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="product-description">Description</label>
+          <textarea id="product-description" rows="3" placeholder="Product description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="product-category">Category</label>
+          <select id="product-category">
+            <option value="">No category</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="product-image-file">Upload Image</label>
+          <input type="file" id="product-image-file" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label for="product-image-url">Or Image URL</label>
+          <input type="text" id="product-image-url" placeholder="https://example.com/image.jpg">
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="checkbox" id="product-featured">
+            Featured product
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="product-submit-btn">Create Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal">
+      <h2 id="category-modal-title">Add Category</h2>
+      <form id="category-form" onsubmit="handleCategorySubmit(event)">
+        <input type="hidden" id="category-id">
+        <div class="form-group">
+          <label for="category-name">Name *</label>
+          <input type="text" id="category-name" required placeholder="Category name">
+        </div>
+        <div class="form-group">
+          <label for="category-description">Description</label>
+          <textarea id="category-description" rows="3" placeholder="Category description"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeCategoryModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="category-submit-btn">Create Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    let allCategories = [];
+
+    // Auth check
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        window.location.href = 'admin-login.html';
+        return;
+      }
+
+      try {
+        await api.verifyToken();
+      } catch (err) {
+        localStorage.removeItem('admin_token');
+        window.location.href = 'admin-login.html';
+        return;
+      }
+
+      loadDashboard();
+      loadProducts();
+      loadCategories();
+    });
+
+    function logout() {
+      localStorage.removeItem('admin_token');
+      window.location.href = 'admin-login.html';
+    }
+
+    // Section switching
+    function switchSection(section, linkEl) {
+      document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+      document.getElementById(`section-${section}`).style.display = 'block';
+      document.querySelectorAll('.admin-sidebar-nav a').forEach(a => a.classList.remove('active'));
+      if (linkEl) linkEl.classList.add('active');
+      // Close mobile sidebar
+      document.getElementById('admin-sidebar').classList.remove('open');
+    }
+
+    // Dashboard
+    async function loadDashboard() {
+      try {
+        const [products, categories] = await Promise.all([
+          api.getProducts(),
+          api.getCategories(),
+        ]);
+
+        const featured = products.filter(p => p.featured);
+        const totalValue = products.reduce((sum, p) => sum + p.price, 0);
+
+        document.getElementById('admin-stats').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-card-label">Total Products</div>
+            <div class="stat-card-value">${products.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Categories</div>
+            <div class="stat-card-value">${categories.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Featured</div>
+            <div class="stat-card-value">${featured.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Avg Price</div>
+            <div class="stat-card-value">$${products.length ? (totalValue / products.length).toFixed(0) : 0}</div>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('admin-stats').innerHTML = '<p style="color:var(--danger)">Failed to load stats.</p>';
+      }
+    }
+
+    // Products
+    async function loadProducts() {
+      try {
+        const products = await api.getProducts();
+        const tbody = document.getElementById('products-table-body');
+
+        if (products.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--gray);">No products yet. Click "Add Product" to create one.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = products.map(p => `
+          <tr>
+            <td>
+              <img src="${escapeHtml(p.image || 'https://placehold.co/48x48/e2e8f0/64748b?text=N/A')}" alt="${escapeHtml(p.name)}" class="admin-table-img"
+                   onerror="this.src='https://placehold.co/48x48/e2e8f0/64748b?text=N/A'">
+            </td>
+            <td><strong>${escapeHtml(p.name)}</strong></td>
+            <td>$${Number(p.price).toFixed(2)}</td>
+            <td>${escapeHtml(p.category_name || 'None')}</td>
+            <td>${p.featured ? '<span style="color:var(--success)">Yes</span>' : 'No'}</td>
+            <td>
+              <div class="admin-table-actions">
+                <button class="btn btn-outline btn-sm" onclick="editProduct(${p.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        document.getElementById('products-table-body').innerHTML =
+          '<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:1rem;">Failed to load products.</td></tr>';
+      }
+    }
+
+    function openProductModal(product = null) {
+      const modal = document.getElementById('product-modal');
+      const title = document.getElementById('product-modal-title');
+      const submitBtn = document.getElementById('product-submit-btn');
+
+      // Populate category dropdown
+      const categorySelect = document.getElementById('product-category');
+      categorySelect.innerHTML = '<option value="">No category</option>' +
+        allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+      if (product) {
+        title.textContent = 'Edit Product';
+        submitBtn.textContent = 'Update Product';
+        document.getElementById('product-id').value = product.id;
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-description').value = product.description || '';
+        document.getElementById('product-image-url').value = product.image || '';
+        document.getElementById('product-category').value = product.category_id || '';
+        document.getElementById('product-featured').checked = !!product.featured;
+      } else {
+        title.textContent = 'Add Product';
+        submitBtn.textContent = 'Create Product';
+        document.getElementById('product-form').reset();
+        document.getElementById('product-id').value = '';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.remove('active');
+    }
+
+    async function handleProductSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('product-id').value;
+      const fileInput = document.getElementById('product-image-file');
+
+      const formData = new FormData();
+      formData.append('name', document.getElementById('product-name').value);
+      formData.append('price', document.getElementById('product-price').value);
+      formData.append('description', document.getElementById('product-description').value);
+      formData.append('category_id', document.getElementById('product-category').value);
+      formData.append('featured', document.getElementById('product-featured').checked ? '1' : '0');
+
+      if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+      } else {
+        formData.append('image_url', document.getElementById('product-image-url').value);
+      }
+
+      try {
+        if (id) {
+          await api.updateProduct(id, formData);
+          showToast('Product updated!', 'success');
+        } else {
+          await api.createProduct(formData);
+          showToast('Product created!', 'success');
+        }
+        closeProductModal();
+        loadProducts();
+        loadDashboard();
+      } catch (err) {
+        showToast(err.message || 'Failed to save product.', 'error');
+      }
+    }
+
+    async function editProduct(id) {
+      try {
+        const product = await api.getProduct(id);
+        openProductModal(product);
+      } catch (err) {
+        showToast('Failed to load product.', 'error');
+      }
+    }
+
+    async function deleteProduct(id, name) {
+      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+      try {
+        await api.deleteProduct(id);
+        showToast('Product deleted.', 'success');
+        loadProducts();
+        loadDashboard();
+      } catch (err) {
+        showToast('Failed to delete product.', 'error');
+      }
+    }
+
+    // Categories
+    async function loadCategories() {
+      try {
+        allCategories = await api.getCategories();
+        const tbody = document.getElementById('categories-table-body');
+
+        if (allCategories.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--gray);">No categories yet. Click "Add Category" to create one.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = allCategories.map(c => `
+          <tr>
+            <td><strong>${escapeHtml(c.name)}</strong></td>
+            <td>${escapeHtml(c.description || '-')}</td>
+            <td>${c.product_count}</td>
+            <td>
+              <div class="admin-table-actions">
+                <button class="btn btn-outline btn-sm" onclick="editCategory(${c.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        document.getElementById('categories-table-body').innerHTML =
+          '<tr><td colspan="4" style="text-align:center; color:var(--danger); padding:1rem;">Failed to load categories.</td></tr>';
+      }
+    }
+
+    function openCategoryModal(category = null) {
+      const modal = document.getElementById('category-modal');
+      const title = document.getElementById('category-modal-title');
+      const submitBtn = document.getElementById('category-submit-btn');
+
+      if (category) {
+        title.textContent = 'Edit Category';
+        submitBtn.textContent = 'Update Category';
+        document.getElementById('category-id').value = category.id;
+        document.getElementById('category-name').value = category.name;
+        document.getElementById('category-description').value = category.description || '';
+      } else {
+        title.textContent = 'Add Category';
+        submitBtn.textContent = 'Create Category';
+        document.getElementById('category-form').reset();
+        document.getElementById('category-id').value = '';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('category-modal').classList.remove('active');
+    }
+
+    async function handleCategorySubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('category-id').value;
+      const data = {
+        name: document.getElementById('category-name').value,
+        description: document.getElementById('category-description').value,
+      };
+
+      try {
+        if (id) {
+          await api.updateCategory(id, data);
+          showToast('Category updated!', 'success');
+        } else {
+          await api.createCategory(data);
+          showToast('Category created!', 'success');
+        }
+        closeCategoryModal();
+        loadCategories();
+        loadDashboard();
+      } catch (err) {
+        showToast(err.message || 'Failed to save category.', 'error');
+      }
+    }
+
+    async function editCategory(id) {
+      try {
+        const category = await api.getCategory(id);
+        openCategoryModal(category);
+      } catch (err) {
+        showToast('Failed to load category.', 'error');
+      }
+    }
+
+    async function deleteCategory(id, name) {
+      if (!confirm(`Delete "${name}"? Products in this category will become uncategorized.`)) return;
+      try {
+        await api.deleteCategory(id);
+        showToast('Category deleted.', 'success');
+        loadCategories();
+        loadProducts();
+        loadDashboard();
+      } catch (err) {
+        showToast('Failed to delete category.', 'error');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
