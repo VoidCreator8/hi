@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../database');
 const { authenticateAdmin } = require('../middleware/auth');
@@ -26,9 +27,10 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedExtensions = /^\.(jpe?g|png|gif|webp)$/i;
+    const allowedMimeTypes = /^image\/(jpeg|png|gif|webp)$/;
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.test(file.mimetype);
     if (extname && mimetype) {
       cb(null, true);
     } else {
@@ -133,10 +135,16 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
     const { name, price, description, image_url, category_id, featured } = req.body;
 
     let image = existing.image;
+    const oldImage = existing.image;
     if (req.file) {
       image = `/uploads/${req.file.filename}`;
     } else if (image_url !== undefined) {
       image = image_url;
+    }
+    // Clean up old uploaded file if image changed
+    if (image !== oldImage && oldImage && oldImage.startsWith('/uploads/')) {
+      const oldPath = path.join(__dirname, '..', oldImage);
+      fs.unlink(oldPath, () => {});
     }
 
     db.prepare(
@@ -173,6 +181,11 @@ router.delete('/:id', authenticateAdmin, (req, res) => {
     }
 
     db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
+    // Clean up uploaded image file
+    if (product.image && product.image.startsWith('/uploads/')) {
+      const imgPath = path.join(__dirname, '..', product.image);
+      fs.unlink(imgPath, () => {});
+    }
     res.json({ message: 'Product deleted successfully.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete product.' });

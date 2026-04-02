@@ -68,6 +68,7 @@ const cart = {
 };
 
 // Toast notification
+let _toastTimeout = null;
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -77,6 +78,7 @@ function showToast(message, type = '') {
     document.body.appendChild(toast);
   }
 
+  clearTimeout(_toastTimeout);
   toast.textContent = message;
   toast.className = `toast ${type}`;
 
@@ -84,7 +86,7 @@ function showToast(message, type = '') {
   void toast.offsetWidth;
   toast.classList.add('show');
 
-  setTimeout(() => {
+  _toastTimeout = setTimeout(() => {
     toast.classList.remove('show');
   }, 2500);
 }
