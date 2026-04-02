@@ -17,7 +17,8 @@ function parseFeatured(val) {
 // Safely delete an uploaded file, only if it resolves inside the uploads directory
 function safeUnlinkUpload(imagePath) {
   if (!imagePath || !imagePath.startsWith('/uploads/')) return;
-  const resolved = path.resolve(__dirname, '..', imagePath);
+  const filename = path.basename(imagePath);
+  const resolved = path.resolve(uploadsDir, filename);
   if (!resolved.startsWith(uploadsDir + path.sep)) return;
   fs.unlink(resolved, () => {});
 }
@@ -109,6 +110,7 @@ router.post('/', authenticateAdmin, upload.single('image'), (req, res) => {
     const { name, price, description, image_url, category_id, featured } = req.body;
 
     if (!name || !price) {
+      if (req.file) fs.unlink(req.file.path, () => {});
       return res.status(400).json({ error: 'Product name and price are required.' });
     }
 
@@ -139,6 +141,7 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
   try {
     const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     if (!existing) {
+      if (req.file) fs.unlink(req.file.path, () => {});
       return res.status(404).json({ error: 'Product not found.' });
     }
 
