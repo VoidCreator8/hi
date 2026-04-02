@@ -38,15 +38,16 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 
 // Catch-all: serve frontend for non-API routes
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    const requestedFile = path.join(__dirname, '..', 'frontend', req.path);
-    res.sendFile(requestedFile, (err) => {
-      if (err) {
-        res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
-      }
-    });
+const frontendRoot = path.resolve(__dirname, '..', 'frontend');
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
   }
+  res.sendFile(req.path, { root: frontendRoot }, (err) => {
+    if (err) {
+      res.sendFile('index.html', { root: frontendRoot });
+    }
+  });
 });
 
 // Error handling middleware

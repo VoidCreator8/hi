@@ -275,8 +275,8 @@
             <td>${p.featured ? '<span style="color:var(--success)">Yes</span>' : 'No'}</td>
             <td>
               <div class="admin-table-actions">
-                <button class="btn btn-outline btn-sm" onclick="editProduct(${p.id})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')">Delete</button>
+                <button class="btn btn-outline btn-sm edit-product-btn" data-id="${p.id}">Edit</button>
+                <button class="btn btn-danger btn-sm delete-product-btn" data-id="${p.id}" data-name="${escapeAttr(p.name)}">Delete</button>
               </div>
             </td>
           </tr>
@@ -394,8 +394,8 @@
             <td>${c.product_count}</td>
             <td>
               <div class="admin-table-actions">
-                <button class="btn btn-outline btn-sm" onclick="editCategory(${c.id})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">Delete</button>
+                <button class="btn btn-outline btn-sm edit-category-btn" data-id="${c.id}">Edit</button>
+                <button class="btn btn-danger btn-sm delete-category-btn" data-id="${c.id}" data-name="${escapeAttr(c.name)}">Delete</button>
               </div>
             </td>
           </tr>
@@ -483,6 +483,26 @@
       div.textContent = str;
       return div.innerHTML;
     }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Event delegation for admin table buttons
+    document.addEventListener('click', (e) => {
+      const editProd = e.target.closest('.edit-product-btn');
+      if (editProd) { editProduct(Number(editProd.dataset.id)); return; }
+
+      const delProd = e.target.closest('.delete-product-btn');
+      if (delProd) { deleteProduct(Number(delProd.dataset.id), delProd.dataset.name); return; }
+
+      const editCat = e.target.closest('.edit-category-btn');
+      if (editCat) { editCategory(Number(editCat.dataset.id)); return; }
+
+      const delCat = e.target.closest('.delete-category-btn');
+      if (delCat) { deleteCategory(Number(delCat.dataset.id), delCat.dataset.name); return; }
+    });
   </script>
 </body>
 </html>
