@@ -132,6 +132,7 @@ router.post('/', authenticateAdmin, upload.single('image'), (req, res) => {
 
     res.status(201).json(product);
   } catch (err) {
+    if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).json({ error: 'Failed to create product.' });
   }
 });
@@ -181,6 +182,7 @@ router.put('/:id', authenticateAdmin, upload.single('image'), (req, res) => {
 
     res.json(product);
   } catch (err) {
+    if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).json({ error: 'Failed to update product.' });
   }
 });
