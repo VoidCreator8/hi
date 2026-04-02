@@ -72,9 +72,9 @@
         const grid = document.getElementById('featured-products');
         if (products.length === 0) {
           grid.innerHTML = '<p style="text-align:center; color: var(--gray); grid-column: 1/-1;">No featured products yet.</p>';
-          return;
+        } else {
+          grid.innerHTML = products.map(p => createProductCard(p)).join('');
         }
-        grid.innerHTML = products.map(p => createProductCard(p)).join('');
       } catch (err) {
         document.getElementById('featured-products').innerHTML =
           '<p style="text-align:center; color: var(--gray); grid-column: 1/-1;">Failed to load products.</p>';
